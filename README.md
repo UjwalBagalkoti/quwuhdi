@@ -2,6 +2,14 @@
 
 A pilot dashboard for UK day-ahead wind forecast visibility and forecast-error analysis. Built with React + Vite, Python FastAPI, and Docker Compose. AI tools were used to assist with scaffolding and implementation; all generated code should be reviewed and tested before production use.
 
+## Live demo
+
+- **Dashboard:** https://quwuhdi-frontend.vercel.app
+- **Backend health:** https://quwuhdi-api-ujwal.vercel.app/api/health
+- **API analysis example (1–2 January 2026):** https://quwuhdi-api-ujwal.vercel.app/api/analysis?start=2026-01-01&end=2026-01-02&vintage=day-ahead
+
+The frontend is deployed on Vercel as a Vite app and the FastAPI backend is deployed as a Vercel Python function. The backend health endpoint and a live analysis request were verified to return HTTP 200. The analysis example returned 48 hourly records with 100% paired coverage for the requested two-day test window. Please treat this as a pilot and review the assumptions below before operational use.
+
 ## Features
 - National wind forecast comparison at hourly resolution; half-hourly FUELHH actuals are averaged into hourly means for alignment.
 - Forecast publication timestamps and estimated lead time for the selected forecast vintage.
@@ -53,19 +61,18 @@ Set `VITE_API_URL` if the API is not at `http://localhost:8000`. Backend configu
 - Actual and forecast records are joined by `startTime`. Metrics use only intervals with both values available; coverage is reported to make missingness visible.
 - Residual demand / additional procurement is not calculated because demand and other supply are explicitly out of scope. Wind forecast alone is not sufficient to determine a purchase volume.
 
-## Deployment notes
-This repository is deployment-ready as a starting point, but a public deployment URL has not been created by this local scaffold. Deploy the frontend to Vercel with `VITE_API_URL` pointing to a publicly deployed API; deploy the FastAPI backend to a container host that supports Docker and set `CORS_ORIGINS` to the deployed frontend origin. Do not expose secrets in frontend environment variables. Vercel's serverless runtime may require adapting the API entrypoint; a dedicated container host is the simplest path for this Compose-based backend.
+## Deployment configuration
+The deployed frontend uses `VITE_API_URL=https://quwuhdi-api-ujwal.vercel.app`. The backend uses `CORS_ORIGINS=https://quwuhdi-frontend.vercel.app`. Vite environment variables are embedded at build time, so redeploy the frontend after changing `VITE_API_URL`. Keep secrets out of frontend environment variables.
 
 ## Tests
 
-Backend unit tests are in `backend/test_main.py`. Install development dependencies with `pip install -r requirements-dev.txt` from `backend/`, then run `pytest -q`. These tests mock Elexon responses and do not replace a live API integration test.
+Backend unit tests are in `backend/test_main.py`. Install development dependencies with `pip install -r requirements-dev.txt` from `backend/`, then run `pytest -q`. These tests mock Elexon responses and do not replace a full live integration test.
 
 ## Known limitations / next steps
-- The Elexon API could not be reached from the review environment because DNS/network access was unavailable. The live integration test is therefore still pending. The app now makes two bounded API requests per analysis (one for actuals and one for forecast revisions) instead of hundreds of per-hour calls. If Elexon returns 429/5xx or no records, inspect the API logs and verify archived forecast availability.
+- A live API check for 1–2 January 2026 succeeded. This does not guarantee every date range or forecast vintage is available; if Elexon returns 429/5xx or no records, inspect API logs and verify archived forecast availability.
 - For rigorous historical day-ahead backtesting, select the latest forecast published before the specific decision cutoff (including UK local time / GMT-BST handling), not simply the latest forecast in the target-day set.
-- Add automated unit/integration tests, caching/retry/backoff, data freshness alerts, API pagination/large-range handling, and CI before production.
+- Add automated integration tests, caching/retry/backoff, data freshness alerts, API pagination/large-range handling, and CI before production.
 - This is an analytical pilot, not a trading system or a substitute for balancing, portfolio, price, or risk controls.
 
 ## Video and submission checklist
-The assignment requires an unlisted YouTube demo (maximum 10 minutes), a public GitHub repository with an anonymous name, and submission through the supplied Microsoft Form. These external deliverables must be created and verified by the submitter; this local project does not claim to have uploaded a video, created a public repo, deployed the app, or submitted the form.
-"# quwuhdi" 
+The assignment requires an unlisted YouTube demo (maximum 10 minutes), a public GitHub repository with an anonymous name, and submission through the supplied Microsoft Form. The live deployment links above are provided for review. Upload and verify the demo video and submit the final URLs through the assignment form separately.
